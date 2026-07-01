@@ -4,7 +4,7 @@ COPY . .
 RUN mvn clean package -DskipTests
 
 # 2. Aşama: Sadece derlenen jar dosyasını çalıştır
-FROM openjdk:17-jdk-slim
+FROM FROM openjdk:17-jdk-slim
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
