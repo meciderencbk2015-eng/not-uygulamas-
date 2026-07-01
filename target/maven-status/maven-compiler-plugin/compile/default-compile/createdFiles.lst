@@ -1,0 +1,4 @@
+com\notapp\not_uygulamasi\controller\NoteController.class
+com\notapp\not_uygulamasi\NotUygulamasiApplication.class
+com\notapp\not_uygulamasi\model\Note.class
+com\notapp\not_uygulamasi\repository\NoteRepository.class

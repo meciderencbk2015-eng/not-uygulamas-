@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>⚡ Pratik Alarmlı Not Dünyası</title>
+    <style>
+        /* 🟣 Mor ve Modern Tema */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e1b4b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4f46e5;
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4338ca;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e7ff;
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* 🎈 Filtreleme Butonları */
+        .filter-container {
+            display: flex;
+            gap: 10px;
+            margin: 25px 0;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            text-decoration: none;
+            padding: 10px 18px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .filter-btn.active {
+            background: white;
+            color: #7c3aed;
+        }
+
+        /* 📝 Not Kartları Tasarımı */
+        .note-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            border-left: 6px solid #8b5cf6;
+        }
+
+        .note-card.overdue {
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        .note-card.ringing {
+            animation: shake 0.5s ease-in-out infinite alternate;
+            border-left-color: #f59e0b;
+            background-color: #fffbeb;
+        }
+
+        .note-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin-bottom: 8px;
+        }
+
+        .note-content {
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            white-space: pre-wrap;
+        }
+
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.88em;
+            color: #6b7280;
+            border-top: 1px solid #f3f4f6;
+            padding-top: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-action {
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .btn-delete { background: #fee2e2; color: #ef4444; }
+        .btn-postpone { background: #e0e7ff; color: #4f46e5; }
+
+        .postpone-form-inline {
+            display: none;
+            margin-top: 10px;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+
+        /* 🚨 Dinamik Alarm Bildirim Kutusu */
+        #alarm-toast {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4);
+            z-index: 9999;
+            font-weight: bold;
+        }
+
+        .toast-mute-btn {
+            margin-top: 8px;
+            display: block;
+            width: 100%;
+            padding: 6px;
+            background: white;
+            color: #f59e0b;
+            border: none;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            100% { transform: translate(-1px, -1px) rotate(0.1deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="alarm-toast">
+        ⏰ ALARM ZAMANI GELDİ!<br>
+        <div id="alarm-list-container" style="margin-top: 5px; font-size:0.9em; font-weight:normal;"></div>
+    </div>
+
+    <div class="container">
+        
+        <div class="main-card">
+            <h1>✍️ Yeni Not ve Alarm Oluştur</h1>
+            <form th:action="@{/addNote}" method="post" onsubmit="interceptFormSubmit(event, this)">
+                <div class="form-group">
+                    <label>Başlık</label>
+                    <input type="text" name="title" id="form-title" class="form-control" placeholder="Örn: Ankara Yolculuğu" required>
+                </div>
+                <div class="form-group">
+                    <label>İçerik</label>
+                    <textarea name="content" class="form-control" rows="3" placeholder="Not detayları..." required></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>📅 Notun Kendi Tarihi</label>
+                        <input type="datetime-local" name="dueDate" id="main-due-date" class="form-control" onchange="syncAlarmDate(this.value)" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>⏰ Alarm Saati (Gün Otomatik Gelir)</label>
+                        <input type="time" id="custom-alarm-time" class="form-control" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">🚀 Notu ve Alarmı Kaydet</button>
+            </form>
+        </div>
+
+        <div class="filter-container">
+            <a th:href="@{/filter-all}" th:class="${currentFilter == 'all'} ? 'filter-btn active' : 'filter-btn'">🎈 Hepsi</a>
+            <a th:href="@{/filter-active}" th:class="${currentFilter == 'active'} ? 'filter-btn active' : 'filter-btn'">⏳ Aktifler</a>
+            <a th:href="@{/filter-overdue}" th:class="${currentFilter == 'overdue'} ? 'filter-btn active' : 'filter-btn'">⚠️ Süresi Geçenler</a>
+        </div>
+
+        <div th:each="note : ${notes}" 
+             th:id="'note-card-' + ${note.id}"
+             th:class="${note.isOverdue()} ? 'note-card overdue' : 'note-card'" 
+             th:data-id="${note.id}"
+             th:data-title="${note.title}">
+            
+            <div class="note-title" th:text="${note.title}">Not Başlığı</div>
+            <div class="note-content" th:text="${note.content}">Not İçerik</div>
+            
+            <div class="note-footer">
+                <div>
+                    📅 Not Tarihi: <span th:text="${#temporals.format(note.dueDate, 'dd-MM-yyyy HH:mm')}">01-01-2026 00:00</span>
+                    <span th:if="${note.isOverdue()}" style="color:#ef4444; font-weight:bold;"> (Süresi Geçti)</span>
+                </div>
+                
+                <div class="actions">
+                    <button type="button" class="btn-action btn-postpone" th:onclick="'togglePostponeForm(' + ${note.id} + ')'">⏳ Ertele</button>
+                    
+                    <form th:action="@{/deleteNote}" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${note.id}" />
+                        <button type="submit" class="btn-action btn-delete" th:onclick="'clearNoteStorage(' + ${note.id} + ')'">🗑️ Sil</button>
+                    </form>
+                </div>
+
+                <div th:id="'postpone-form-' + ${note.id}" class="postpone-form-inline">
+                    <form th:action="@{/postponeNote}" method="post" th:onsubmit="'handlePostponeSubmit(event, ' + ${note.id} + ')'">
+                        <input type="hidden" name="id" th:value="${note.id}" />
+                        
+                        <label style="font-size: 0.9em; font-weight: 600; display: block; margin-bottom: 5px;">📅 Yeni Not Tarihi Seçin:</label>
+                        <input type="datetime-local" name="newDueDate" th:id="'postpone-due-' + ${note.id}" th:onchange="'syncPostponeAlarmDate(' + ${note.id} + ', this.value)'" class="form-control" style="margin-bottom:10px;" required />
+                        
+                        <label style="font-size: 0.9em; font-weight: 600; display: block; margin-bottom: 5px;">⏰ Yeni Alarm Saati:</label>
+                        <input type="time" th:id="'postpone-alarm-' + ${note.id}" class="form-control" style="margin-bottom:10px;" required>
+                        
+                        <button type="submit" class="btn-action btn-postpone" style="width:100%;">🔄 Güncelle</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var selectedDateOnly = ""; // Soldan seçilen tarihi (YYYY-MM-DD) tutacak
+
+        // Soldan tarih seçildiği an sağdaki alarmın gününü buraya kilitler
+        function syncAlarmDate(fullDateTimeValue) {
+            if(fullDateTimeValue) {
+                selectedDateOnly = fullDateTimeValue.split('T')[0]; // Sadece tarihi ayıkla (Örn: 2026-07-20)
+            }
+        }
+
+        // Erteleme formundaki tarih değişimini yakalar
+        var postponeDates = {};
+        function syncPostponeAlarmDate(noteId, fullDateTimeValue) {
+            if(fullDateTimeValue) {
+                postponeDates[noteId] = fullDateTimeValue.split('T')[0];
+            }
+        }
+
+        function togglePostponeForm(noteId) {
+            var form = document.getElementById('postpone-form-' + noteId);
+            form.style.display = (form.style.display === 'none' || form.style.display === '') ? 'block' : 'none';
+        }
+
+        // Kaydedereken otomatik kilitlenen gün ve girilen saati birleştirip tam zamanı hafızaya kaydeder
+        function interceptFormSubmit(event, form) {
+            var title = document.getElementById('form-title').value;
+            var timeValue = document.getElementById('custom-alarm-time').value; // Örn: "08:15"
+            
+            if(!selectedDateOnly) {
+                // Eğer kullanıcı soldan tarih seçmeden sağa geçtiyse bugünün tarihini verelim güvenlik önlemi
+                selectedDateOnly = new Date().toISOString().split('T')[0];
+            }
+
+            var combinedDateTimeStr = selectedDateOnly + "T" + timeValue; // "2026-07-20T08:15"
+            var alarmTimestamp = new Date(combinedDateTimeStr).getTime();
+            
+            localStorage.setItem('pending_alarm_' + title, alarmTimestamp);
+        }
+
+        function handlePostponeSubmit(event, noteId) {
+            var timeValue = document.getElementById('postpone-alarm-' + noteId).value;
+            var pDate = postponeDates[noteId] || new Date().toISOString().split('T')[0];
+            
+            var combinedStr = pDate + "T" + timeValue;
+            localStorage.setItem('alarm_time_note_' + noteId, new Date(combinedStr).getTime());
+            localStorage.removeItem('muted_note_' + noteId);
+        }
+
+        function clearNoteStorage(noteId) {
+            localStorage.removeItem('alarm_time_note_' + noteId);
+            localStorage.removeItem('muted_note_' + noteId);
+        }
+
+        var audioContext = null;
+        var alarmInterval = null;
+        var isPlaying = false;
+
+        function playBeep() {
+            try {
+                if(!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = audioContext.createOscillator();
+                var gain = audioContext.createGain();
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                osc.type = "sine";
+                osc.frequency.value = 880; 
+                gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+                osc.start();
+                setTimeout(function() { osc.stop(); }, 150); 
+            } catch(e) {}
+        }
+
+        function checkCustomAlarms() {
+            var cards = document.querySelectorAll('.note-card');
+            var toast = document.getElementById('alarm-toast');
+            var listContainer = document.getElementById('alarm-list-container');
+            
+            var now = new Date().getTime();
+            var activeAlarms = [];
+
+            cards.forEach(function(card) {
+                var noteId = card.getAttribute('data-id');
+                var noteTitle = card.getAttribute('data-title');
+
+                var pendingAlarm = localStorage.getItem('pending_alarm_' + noteTitle);
+                if (pendingAlarm) {
+                    localStorage.setItem('alarm_time_note_' + noteId, pendingAlarm);
+                    localStorage.removeItem('pending_alarm_' + noteTitle);
+                }
+
+                var customAlarmTimestamp = localStorage.getItem('alarm_time_note_' + noteId);
+                var isMuted = localStorage.getItem('muted_note_' + noteId);
+
+                if (customAlarmTimestamp) {
+                    var alarmTime = parseInt(customAlarmTimestamp);
+                    
+                    if (now >= alarmTime && !isMuted) {
+                        card.classList.add('ringing');
+                        activeAlarms.push({ id: noteId, title: noteTitle });
+                    } else {
+                        card.classList.remove('ringing');
+                    }
+                }
+            });
+
+            if (activeAlarms.length > 0) {
+                var htmlContent = "";
+                activeAlarms.forEach(function(alarm) {
+                    htmlContent += "<div style='margin-bottom: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;'>" +
+                                   "🔔 <b>" + alarm.title + "</b> alarmı ötüyor!" +
+                                   "<button class='toast-mute-btn' onclick='muteSingleAlarm(" + alarm.id + ")'>❌ Sustur</button>" +
+                                   "</div>";
+                });
+                
+                listContainer.innerHTML = htmlContent;
+                toast.style.display = 'block';
+
+                if (!isPlaying) {
+                    isPlaying = true;
+                    alarmInterval = setInterval(playBeep, 1000);
+                }
+            } else {
+                if (alarmInterval) {
+                    clearInterval(alarmInterval);
+                    alarmInterval = null;
+                }
+                isPlaying = false;
+                toast.style.display = 'none';
+            }
+        }
+
+        function muteSingleAlarm(noteId) {
+            localStorage.setItem('muted_note_' + noteId, 'true');
+            checkCustomAlarms();
+        }
+
+        setInterval(checkCustomAlarms, 2000);
+        window.onload = checkCustomAlarms;
+    </script>
+</body>
+</html>

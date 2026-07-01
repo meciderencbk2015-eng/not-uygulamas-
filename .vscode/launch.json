@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-NotUygulamasiApplication<not-uygulamasi>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.notapp.not_uygulamasi.NotUygulamasiApplication",
+            "projectName": "not-uygulamasi",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
